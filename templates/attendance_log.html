@@ -126,7 +126,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', path='/js/attendance.js') }}"></script>
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
 <script>
     // Populate student filter dropdown
     document.addEventListener('DOMContentLoaded', function() {
