@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Register Student - Biometric Attendance System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .capture-container {
+        position: relative;
+    }
+    
+    .capture-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0,0,0,0.5);
+        color: white;
+        font-size: 1.2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .capture-container:hover .capture-overlay {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Register Student</li>
+            </ol>
+        </nav>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Student Registration
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Register a new student by filling out the form below and capturing their face image.
+                    The face image will be used for biometric attendance marking.
+                </p>
+                
+                <div id="statusMessage" class="alert d-none" role="alert"></div>
+                
+                <form id="studentForm" class="student-form mt-4">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="studentId" class="form-label">Student ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                    <input type="text" class="form-control" id="studentId" name="studentId" required placeholder="Enter student ID">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="name" name="name" required placeholder="Enter full name">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" required placeholder="Enter email address">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Face Capture</label>
+                                
+                                <!-- Webcam capture container -->
+                                <div id="captureContainer" class="webcam-container mb-3">
+                                    <video id="webcam" autoplay playsinline></video>
+                                    <canvas id="canvas" class="d-none"></canvas>
+                                    <div class="capture-overlay">
+                                        <span>Position your face in the center</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Preview container (initially hidden) -->
+                                <div id="previewContainer" class="preview-container mb-3 d-none">
+                                    <img id="previewImg" src="" alt="Face preview">
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="button" id="captureBtn" class="btn btn-info">
+                                        <i class="fas fa-camera me-1"></i> Capture Face
+                                    </button>
+                                    <button type="button" id="retakeBtn" class="btn btn-secondary d-none">
+                                        <i class="fas fa-redo me-1"></i> Retake Photo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" id="registerBtn" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Register Student
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Face Capture Guidelines
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Ensure proper lighting on your face
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Position your face in the center of the frame
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Keep a neutral expression
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Avoid wearing sunglasses or hats
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Avoid extreme facial expressions
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Avoid poor lighting conditions
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/webcam.js') }}"></script>
+<script src="{{ url_for('static', path='/js/face_capture.js') }}"></script>
+{% endblock %}

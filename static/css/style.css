@@ -1,0 +1,168 @@
+/* Main Styles for Biometric Attendance System */
+
+/* Custom variables */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --success-color: #2ecc71;
+  --danger-color: #e74c3c;
+  --warning-color: #f39c12;
+  --info-color: #3498db;
+  --light-color: #ecf0f1;
+  --dark-color: #2c3e50;
+}
+
+/* Basic styling */
+body {
+  padding-top: 56px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bs-body-bg);
+}
+
+.content {
+  flex: 1;
+}
+
+footer {
+  padding: 20px 0;
+  margin-top: 20px;
+  background-color: var(--bs-dark);
+  color: var(--bs-light);
+}
+
+/* Card styling */
+.card {
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,.15);
+}
+
+.card-header {
+  font-weight: bold;
+}
+
+/* Webcam container */
+.webcam-container {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.2);
+}
+
+#webcam {
+  width: 100%;
+  height: auto;
+  background-color: #000;
+}
+
+#canvas {
+  display: none;
+}
+
+/* Preview */
+.preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.2);
+}
+
+#previewImg {
+  width: 100%;
+  height: auto;
+}
+
+/* Student registration form */
+.student-form {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* Feature icons */
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  color: #fff;
+  background-color: var(--primary-color);
+  border-radius: 0.75rem;
+}
+
+/* Results container */
+.result-container {
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  background-color: var(--bs-light);
+  box-shadow: 0 4px 10px rgba(0,0,0,.1);
+}
+
+/* Attendance table */
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.attendance-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--bs-dark);
+  color: white;
+  z-index: 1;
+}
+
+.attendance-filters {
+  margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .webcam-container,
+  .preview-container {
+    max-width: 100%;
+  }
+  
+  .feature-icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* Animation for success */
+@keyframes success-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(46, 204, 113, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+  }
+}
+
+.success-animation {
+  animation: success-pulse 1.5s infinite;
+}

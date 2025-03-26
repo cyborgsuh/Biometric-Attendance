@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Biometric Attendance System{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-dark text-light p-5 rounded mb-4">
+    <h1 class="display-4">
+        <i class="fas fa-fingerprint text-primary me-2"></i>
+        Biometric Attendance System
+    </h1>
+    <p class="lead">
+        A modern face recognition-based attendance system for educational institutions.
+    </p>
+    <hr class="my-4">
+    <p>
+        Register students, mark attendance with face recognition, and generate attendance reports easily.
+    </p>
+    <div class="d-flex gap-2 mt-4">
+        <a class="btn btn-primary" href="/add-student" role="button">
+            <i class="fas fa-user-plus me-1"></i> Register Student
+        </a>
+        <a class="btn btn-success" href="/mark-attendance" role="button">
+            <i class="fas fa-camera me-1"></i> Mark Attendance
+        </a>
+        <a class="btn btn-info" href="/attendance-log" role="button">
+            <i class="fas fa-clipboard-list me-1"></i> View Logs
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark text-light">
+            <div class="card-body">
+                <h2>
+                    <i class="fas fa-info-circle text-info me-2"></i>
+                    About the System
+                </h2>
+                <p class="lead">
+                    This biometric attendance system uses state-of-the-art face recognition technology to automate the attendance marking process, making it efficient, accurate, and secure.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-primary mx-auto">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h5 class="card-title">Student Registration</h5>
+                <p class="card-text">Register students with their facial data for quick and accurate identification.</p>
+                <a href="/add-student" class="btn btn-outline-primary">Register Now</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-success mx-auto">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <h5 class="card-title">Face Recognition</h5>
+                <p class="card-text">Mark attendance through facial recognition - quick, secure, and contactless.</p>
+                <a href="/mark-attendance" class="btn btn-outline-success">Mark Attendance</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-info mx-auto">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h5 class="card-title">Reports & Analytics</h5>
+                <p class="card-text">Generate comprehensive attendance reports and analytics.</p>
+                <a href="/attendance-log" class="btn btn-outline-info">View Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card bg-secondary">
+            <div class="card-body">
+                <h3 class="text-light">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Key Benefits
+                </h3>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Eliminates proxy attendance
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Contactless & hygienic
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Time-saving & efficient
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Accurate attendance tracking
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Easy to use interface
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Comprehensive reporting
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

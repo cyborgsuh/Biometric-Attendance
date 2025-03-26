@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Biometric Attendance System{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS from Replit CDN -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-fingerprint me-2"></i>
+                Biometric Attendance
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.url.path == '/' %}active{% endif %}" href="/">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.url.path == '/add-student' %}active{% endif %}" href="/add-student">
+                            <i class="fas fa-user-plus me-1"></i> Register Student
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.url.path == '/mark-attendance' %}active{% endif %}" href="/mark-attendance">
+                            <i class="fas fa-camera me-1"></i> Mark Attendance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.url.path == '/attendance-log' %}active{% endif %}" href="/attendance-log">
+                            <i class="fas fa-clipboard-list me-1"></i> Attendance Logs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.url.path == '/admin-panel' %}active{% endif %}" href="/admin-panel">
+                            <i class="fas fa-cogs me-1"></i> Admin Panel
+                        </a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                    <i class="fas fa-clock me-1"></i> <span id="currentTime"></span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container content py-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-3">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="fas fa-fingerprint me-2"></i> 
+                Biometric Attendance System &copy; {{ now.year }} | 
+                <a href="https://github.com/yourusername" class="text-light" target="_blank">
+                    <i class="fab fa-github me-1"></i> GitHub
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Update current time in navbar
+        function updateTime() {
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                const now = new Date();
+                timeElement.textContent = now.toLocaleString();
+            }
+        }
+        
+        // Update time every second
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance - Biometric Attendance System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Mark Attendance</li>
+            </ol>
+        </nav>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-camera me-2"></i>
+                    Mark Attendance with Face Recognition
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Look at the camera and click the "Capture Face" button to mark your attendance.
+                    The system will automatically recognize your face and record your attendance.
+                </p>
+                
+                <div id="statusMessage" class="alert d-none" role="alert"></div>
+                
+                <div class="row">
+                    <div class="col-md-7">
+                        <!-- Webcam container -->
+                        <div class="webcam-container mb-3">
+                            <video id="webcam" autoplay playsinline></video>
+                            <canvas id="canvas" class="d-none"></canvas>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="button" id="captureBtn" class="btn btn-success btn-lg">
+                                <i class="fas fa-camera me-1"></i> Capture Face
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-5">
+                        <!-- Result container (initially hidden) -->
+                        <div id="resultContainer" class="result-container d-none">
+                            <h4 class="text-center mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Attendance Marked
+                            </h4>
+                            
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <p class="mb-1"><strong>Student:</strong> <span id="studentName"></span></p>
+                                    <p class="mb-1"><strong>Status:</strong> <span id="attendanceStatus"></span></p>
+                                    <p class="mb-0"><strong>Time:</strong> <span id="attendanceTime"></span></p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="button" id="resetBtn" class="btn btn-primary">
+                                    <i class="fas fa-redo me-1"></i> Mark Another Attendance
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Instructions -->
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Instructions
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <ol class="list-group list-group-numbered">
+                                    <li class="list-group-item">Position your face in the camera frame</li>
+                                    <li class="list-group-item">Make sure your face is clearly visible</li>
+                                    <li class="list-group-item">Click the "Capture Face" button</li>
+                                    <li class="list-group-item">Wait for the system to recognize your face</li>
+                                    <li class="list-group-item">Your attendance will be marked automatically</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Face Recognition Tips
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Ensure proper lighting on your face
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Look directly at the camera
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Keep a neutral expression
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Avoid wearing sunglasses or hats
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Avoid extreme facial expressions
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Avoid poor lighting conditions
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/webcam.js') }}"></script>
+<script src="{{ url_for('static', path='/js/attendance.js') }}"></script>
+{% endblock %}
