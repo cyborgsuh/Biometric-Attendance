@@ -64,11 +64,11 @@ flask db upgrade
 
 ## Configuration
 
-1. Environment Variables (create a `.env` file):
-```env
-SESSION_SECRET=your_secret_key
-DATABASE_URL=mysql+pymysql://username:password@localhost/attendance_system
+1. Configure the database connection in `main.py`:
+```python
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://username:password@localhost/attendance_system"
 ```
+Make sure to replace `username` and `password` with your MySQL credentials.
 
 2. Adjust face recognition settings in `services/face_recognition_service.py` if needed.
 
