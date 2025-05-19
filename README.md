@@ -32,7 +32,7 @@ A modern face recognition-based attendance system built with Flask, OpenCV, and 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/SmartAttendanceTracker.git
+git https://github.com/cyborgsuh/Biometric-Attendance
 cd SmartAttendanceTracker
 ```
 
