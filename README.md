@@ -1,4 +1,4 @@
-# Smart Attendance Tracker
+# Biometric Attendance
 
 A modern face recognition-based attendance system built with Flask, OpenCV, and deep learning. This system provides an efficient, contactless way to track student attendance using facial biometrics.
 
