@@ -64,7 +64,7 @@ flask db upgrade
 
 ## Configuration
 
-1. Configure the database connection in `main.py`:
+1. Configure the database connection in `app.py`:
 ```python
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://username:password@localhost/attendance_system"
 ```
