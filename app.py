@@ -15,8 +15,8 @@ app = Flask(__name__)
 # setup a secret key, required by sessions
 app.secret_key = os.environ.get("SESSION_SECRET", "your_secret_key")
 
-# configure the database, relative to the app instance folder
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# configure the database with MySQL
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:suhaib@localhost/attendance_system"
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,

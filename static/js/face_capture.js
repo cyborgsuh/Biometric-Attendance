@@ -25,6 +25,74 @@ document.addEventListener('DOMContentLoaded', function() {
             imageFormat: 'image/jpeg',
             imageQuality: 0.9
         });
+
+        // Add face detection canvas
+        const detectionCanvas = document.createElement('canvas');
+        detectionCanvas.style.position = 'absolute';
+        detectionCanvas.style.top = '0';
+        detectionCanvas.style.left = '0';
+        detectionCanvas.style.width = '100%';
+        detectionCanvas.style.height = '100%';
+        videoElement.parentElement.appendChild(detectionCanvas);
+        const ctx = detectionCanvas.getContext('2d');
+
+        // Face detection loop
+        async function detectFaces() {
+            if (webcam && webcam.isStreaming) {
+                const image = webcam.takePicture();
+                if (image) {
+                    try {
+                        const response = await fetch('/api/detect-faces', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ image_data: image })
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success && data.faces) {
+                            // Clear previous drawings
+                            ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+                            
+                            // Draw rectangles
+                            ctx.strokeStyle = '#00ff00';
+                            ctx.lineWidth = 2;
+                            data.faces.forEach(face => {
+                                const [top, right, bottom, left] = face;
+                                const x = left;
+                                const y = top;
+                                const width = right - left;
+                                const height = bottom - top;
+                                ctx.strokeRect(x, y, width, height);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Face detection error:', error);
+                    }
+                }
+            }
+            // Continue detection loop
+            requestAnimationFrame(detectFaces);
+        }
+
+        // Start detection loop when webcam starts
+        webcam.start()
+            .then(() => {
+                console.log('Webcam started successfully');
+                if (captureContainer) {
+                    captureContainer.classList.remove('d-none');
+                }
+                // Start face detection loop
+                detectFaces();
+            })
+            .catch(err => {
+                console.error('Error starting webcam:', err);
+                if (statusMessage) {
+                    statusMessage.textContent = 'Error: Cannot access camera. Please ensure camera permissions are granted.';
+                    statusMessage.classList.add('alert', 'alert-danger');
+                }
+            });
     }
     
     let capturedImage = null;
@@ -103,18 +171,33 @@ document.addEventListener('DOMContentLoaded', function() {
         studentForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Show a loading message
+            if (statusMessage) {
+                statusMessage.textContent = 'Registering student...';
+                statusMessage.classList.remove('d-none', 'alert-success', 'alert-danger');
+                statusMessage.classList.add('alert', 'alert-info');
+            }
+            
             // Validate form
             const studentId = document.getElementById('studentId').value;
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             
             if (!studentId || !name || !email) {
-                alert('Please fill in all fields.');
+                if (statusMessage) {
+                    statusMessage.textContent = 'Please fill in all fields';
+                    statusMessage.classList.remove('alert-info', 'alert-success');
+                    statusMessage.classList.add('alert-danger');
+                }
                 return;
             }
             
             if (!capturedImage) {
-                alert('Please capture a face image before registering.');
+                if (statusMessage) {
+                    statusMessage.textContent = 'Please capture a face image before registering';
+                    statusMessage.classList.remove('alert-info', 'alert-success');
+                    statusMessage.classList.add('alert-danger');
+                }
                 return;
             }
             
@@ -177,21 +260,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (result.success) {
                     // Show success message
                     if (statusMessage) {
-                        statusMessage.textContent = 'Student registered successfully!';
-                        statusMessage.classList.remove('alert-danger');
+                        statusMessage.textContent = '✅ Student registered successfully!';
+                        statusMessage.classList.remove('d-none', 'alert-danger', 'alert-info');
                         statusMessage.classList.add('alert', 'alert-success');
                     }
                     
-                    // Reset form
-                    studentForm.reset();
-                    if (previewContainer) previewContainer.classList.add('d-none');
-                    
-                    // Restart webcam
-                    if (webcam) {
-                        webcam.start().then(() => {
-                            if (captureContainer) captureContainer.classList.remove('d-none');
-                        });
-                    }
+                    // Reset form after 2 seconds
+                    setTimeout(() => {
+                        studentForm.reset();
+                        if (previewContainer) previewContainer.classList.add('d-none');
+                        
+                        // Restart webcam
+                        if (webcam) {
+                            webcam.start().then(() => {
+                                if (captureContainer) captureContainer.classList.remove('d-none');
+                            });
+                        }
+                    }, 2000);
                 } else {
                     throw new Error(result.message || 'Failed to register face');
                 }
@@ -199,8 +284,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error:', error);
                 if (statusMessage) {
-                    statusMessage.textContent = 'Error: ' + error.message;
-                    statusMessage.classList.remove('alert-success');
+                    statusMessage.textContent = '❌ Error: ' + error.message;
+                    statusMessage.classList.remove('d-none', 'alert-info', 'alert-success');
                     statusMessage.classList.add('alert', 'alert-danger');
                 }
             })

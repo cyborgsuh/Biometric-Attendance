@@ -59,6 +59,10 @@ footer {
   box-shadow: 0 4px 10px rgba(0,0,0,.2);
 }
 
+.webcam-container canvas {
+  pointer-events: none;
+}
+
 #webcam {
   width: 100%;
   height: auto;

@@ -5,6 +5,7 @@ import base64
 import json
 from datetime import datetime
 import pytz
+from services.face_recognition_service import detect_faces
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -48,6 +49,7 @@ def get_all_students():
         "student_id": student.student_id,
         "name": student.name,
         "email": student.email,
+        "face_encoding": bool(student.face_encoding),  # Convert to boolean
         "created_at": student.created_at.isoformat() if student.created_at else None,
         "updated_at": student.updated_at.isoformat() if student.updated_at else None,
     } for student in students])
@@ -80,76 +82,134 @@ def create_student():
 def register_face():
     from models import Student
     from app import db
+    from services.face_recognition_service import encode_face
     
-    data = request.json
-    student_id = data.get("student_id")
-    image_data = data.get("image_data")
+    try:
+        data = request.json
+        student_id = data.get("student_id")
+        image_data = base64.b64decode(data.get("image_data").split(',')[1])
+        
+        # Get real face encoding
+        face_encoding = encode_face(image_data)
+        if face_encoding is None:
+            return jsonify({"success": False, "message": "No face detected in image"})
+            
+        # Update student with real face encoding
+        student = db.session.query(Student).filter(Student.id == student_id).first()
+        if not student:
+            return jsonify({"success": False, "message": "Student not found"}), 404
+        
+        # Convert numpy array to list for JSON serialization
+        student.face_encoding = json.dumps(face_encoding.tolist())
+        db.session.commit()
+        
+        return jsonify({"success": True, "message": "Face registered successfully"})
+        
+    except Exception as e:
+        logger.error(f"Error registering face: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/api/students/<int:student_id>", methods=["DELETE"])
+def delete_student(student_id):
+    from models import Student
+    from app import db
     
-    # In a real application, we would process the facial data
-    # Since we can't use face-recognition, we'll simulate it
-    mock_encoding = [0.0] * 128  # Simulated face encoding vector
-    
-    # Update student with face encoding
-    student = db.session.query(Student).filter(Student.id == student_id).first()
-    if not student:
-        return jsonify({"success": False, "message": "Student not found"}), 404
-    
-    student.face_encoding = json.dumps(mock_encoding)
-    db.session.commit()
-    
-    return jsonify({"success": True, "message": "Face registered successfully"})
+    try:
+        # Find the student
+        student = db.session.query(Student).filter(Student.id == student_id).first()
+        if not student:
+            return jsonify({"success": False, "message": "Student not found"}), 404
+            
+        # Delete the student
+        db.session.delete(student)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Student deleted successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting student: {str(e)}")
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "message": f"Error deleting student: {str(e)}"
+        }), 500
 
 # API Routes for Attendance
 @app.route("/api/attendance/mark", methods=["POST"])
 def mark_attendance():
     from models import Student, Attendance
     from app import db
+    from services.face_recognition_service import encode_face, compare_faces
+    import json
     
-    data = request.json
-    image_data = data.get("image_data")
-    
-    # In a real application, we would process the facial data and compare
-    # Since we can't use face-recognition, we'll simulate recognition with the first student
-    student = db.session.query(Student).first()
-    
-    if not student:
-        return jsonify({"success": False, "message": "No students registered yet"})
-    
-    # Check if there's an open attendance record
-    today = datetime.now().date()
-    current_time = datetime.now(pytz.UTC)
-    
-    open_attendance = db.session.query(Attendance).filter(
-        Attendance.student_id == student.id,
-        db.func.date(Attendance.check_in) == today,
-        Attendance.check_out == None
-    ).first()
-    
-    if open_attendance:
-        # Check out
-        open_attendance.check_out = current_time
-        db.session.commit()
-        return jsonify({
-            "success": True,
-            "student_id": student.id,
-            "name": student.name,
-            "message": f"Attendance check-out marked for {student.name}"
-        })
-    else:
-        # Check in
-        new_attendance = Attendance(
-            student_id=student.id,
-            check_in=current_time,
-            status="present"
-        )
-        db.session.add(new_attendance)
-        db.session.commit()
-        return jsonify({
-            "success": True,
-            "student_id": student.id,
-            "name": student.name,
-            "message": f"Attendance check-in marked for {student.name}"
-        })
+    try:
+        data = request.json
+        image_data = base64.b64decode(data.get("image_data").split(',')[1])
+        
+        # Get face encoding from captured image
+        face_encoding = encode_face(image_data)
+        if face_encoding is None:
+            return jsonify({"success": False, "message": "No face detected in image"})
+        
+        # Get all students
+        students = db.session.query(Student).all()
+        matched_student = None
+        
+        # Compare with stored face encodings
+        for student in students:
+            if not student.face_encoding:
+                continue
+                
+            stored_encoding = json.loads(student.face_encoding)
+            if compare_faces(face_encoding, stored_encoding):
+                matched_student = student
+                break
+        
+        if not matched_student:
+            return jsonify({"success": False, "message": "Face not recognized"})
+        
+        # Mark attendance for matched student
+        today = datetime.now().date()
+        current_time = datetime.now(pytz.UTC)
+        
+        open_attendance = db.session.query(Attendance).filter(
+            Attendance.student_id == matched_student.id,
+            db.func.date(Attendance.check_in) == today,
+            Attendance.check_out == None
+        ).first()
+        
+        if open_attendance:
+            # Check out
+            open_attendance.check_out = current_time
+            db.session.commit()
+            return jsonify({
+                "success": True,
+                "student_id": matched_student.id,
+                "name": matched_student.name,
+                "message": f"Attendance check-out marked for {matched_student.name}"
+            })
+        else:
+            # Check in
+            new_attendance = Attendance(
+                student_id=matched_student.id,
+                check_in=current_time,
+                status="present"
+            )
+            db.session.add(new_attendance)
+            db.session.commit()
+            return jsonify({
+                "success": True,
+                "student_id": matched_student.id,
+                "name": matched_student.name,
+                "message": f"Attendance check-in marked for {matched_student.name}"
+            })
+            
+    except Exception as e:
+        logger.error(f"Error marking attendance: {str(e)}")
+        return jsonify({"success": False, "message": f"Error processing attendance: {str(e)}"})
 
 @app.route("/api/attendance/", methods=["GET"])
 def get_all_attendance():
@@ -225,6 +285,26 @@ def get_daily_report():
         })
     
     return jsonify(report)
+
+@app.route("/api/detect-faces", methods=["POST"])
+def detect_faces_endpoint():
+    try:
+        data = request.json
+        image_data = base64.b64decode(data.get("image_data").split(',')[1])
+        
+        # Detect faces
+        _, face_locations = detect_faces(image_data)
+        
+        return jsonify({
+            "success": True,
+            "faces": face_locations
+        })
+    except Exception as e:
+        logger.error(f"Error detecting faces: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

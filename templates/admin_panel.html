@@ -343,10 +343,72 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Load students
+        // Function to update quick stats
+        function updateQuickStats() {
+            const totalStudents = document.getElementById('totalStudents');
+            const presentToday = document.getElementById('presentToday');
+            const absentToday = document.getElementById('absentToday');
+            
+            // First get total students count
+            fetch('/api/students/')
+                .then(response => response.json())
+                .then(students => {
+                    const studentCount = students.length;
+                    totalStudents.textContent = studentCount;
+                    
+                    // Get current date
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    const dateString = `${year}-${month}-${day}`;
+                    
+                    // Fetch today's attendance report
+                    return fetch(`/api/attendance/report/daily?date=${dateString}`);
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Count present, late and absent students
+                    const present = data.filter(record => record.status === 'present').length;
+                    const late = data.filter(record => record.status === 'late').length;
+                    const absent = data.filter(record => record.status === 'absent').length;
+                    
+                    // Update stats
+                    presentToday.textContent = present + late; // Both present and late are counted as present
+                    absentToday.textContent = absent;
+                })
+                .catch(error => {
+                    console.error('Error updating stats:', error);
+                    totalStudents.textContent = 'Error';
+                    presentToday.textContent = 'Error';
+                    absentToday.textContent = 'Error';
+                });
+        }
+        
+        // Load initial data
         loadStudents();
         updateQuickStats();
         
+        // Refresh quick stats every minute
+        setInterval(updateQuickStats, 60000);
+        
+        // Load students into report dropdown
+        const reportStudent = document.getElementById('reportStudent');
+        if (reportStudent) {
+            fetch('/api/students/')
+                .then(response => response.json())
+                .then(students => {
+                    // Add options to dropdown
+                    students.forEach(student => {
+                        const option = document.createElement('option');
+                        option.value = student.id;
+                        option.textContent = student.name;
+                        reportStudent.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading students:', error));
+        }
+
         // Threshold slider value display
         const thresholdSlider = document.getElementById('faceRecognitionThreshold');
         const thresholdValue = document.getElementById('thresholdValue');
@@ -376,56 +438,104 @@
                 generateReportBtn.disabled = true;
                 generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
                 
-                // Simulate report generation
-                setTimeout(() => {
-                    reportResults.classList.remove('d-none');
+                const dateFrom = document.getElementById('reportDateFrom').value;
+                const dateTo = document.getElementById('reportDateTo').value;
+                const studentId = document.getElementById('reportStudent').value;
+                
+                if (!dateFrom || !dateTo) {
+                    alert('Please select both From and To dates');
                     generateReportBtn.disabled = false;
                     generateReportBtn.innerHTML = '<i class="fas fa-chart-line me-1"></i> Generate Report';
-                    
-                    // Sample data for demonstration
-                    document.getElementById('presentCount').textContent = '15';
-                    document.getElementById('absentCount').textContent = '3';
-                    document.getElementById('lateCount').textContent = '2';
-                    
-                    // Populate report table
-                    const reportTableBody = document.getElementById('reportTableBody');
-                    if (reportTableBody) {
-                        reportTableBody.innerHTML = '';
-                        
-                        // Sample data
-                        const sampleData = [
-                            { date: '2023-05-01', student: 'John Doe', status: 'present', checkIn: '09:05:23', checkOut: '17:02:45', duration: '7h 57m' },
-                            { date: '2023-05-01', student: 'Jane Smith', status: 'present', checkIn: '08:55:12', checkOut: '17:10:33', duration: '8h 15m' },
-                            { date: '2023-05-02', student: 'John Doe', status: 'late', checkIn: '09:25:08', checkOut: '17:05:19', duration: '7h 40m' },
-                            { date: '2023-05-02', student: 'Jane Smith', status: 'present', checkIn: '08:58:02', checkOut: '17:00:45', duration: '8h 02m' },
-                            { date: '2023-05-03', student: 'John Doe', status: 'absent', checkIn: '-', checkOut: '-', duration: '-' }
-                        ];
-                        
-                        sampleData.forEach(record => {
-                            const row = document.createElement('tr');
-                            
-                            // Set row class based on status
-                            if (record.status === 'absent') {
-                                row.classList.add('table-danger');
-                            } else if (record.status === 'late') {
-                                row.classList.add('table-warning');
-                            } else {
-                                row.classList.add('table-success');
-                            }
-                            
-                            row.innerHTML = `
-                                <td>${record.date}</td>
-                                <td>${record.student}</td>
-                                <td>${record.status}</td>
-                                <td>${record.checkIn}</td>
-                                <td>${record.checkOut}</td>
-                                <td>${record.duration}</td>
-                            `;
-                            
-                            reportTableBody.appendChild(row);
-                        });
+                    return;
+                }
+                
+                // Fetch attendance data for the date range
+                const promises = [];
+                const currentDate = new Date(dateFrom);
+                const endDate = new Date(dateTo);
+                
+                while (currentDate <= endDate) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    let url = `/api/attendance/report/daily?date=${dateStr}`;
+                    if (studentId) {
+                        url += `&student_id=${studentId}`;
                     }
-                }, 1500);
+                    promises.push(fetch(url).then(res => res.json()));
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                Promise.all(promises)
+                    .then(results => {
+                        // Combine all results
+                        const allRecords = results.flat();
+                        
+                        // Calculate statistics
+                        const present = allRecords.filter(r => r.status === 'present').length;
+                        const absent = allRecords.filter(r => r.status === 'absent').length;
+                        const late = allRecords.filter(r => r.status === 'late').length;
+                        
+                        // Update summary counts
+                        document.getElementById('presentCount').textContent = present;
+                        document.getElementById('absentCount').textContent = absent;
+                        document.getElementById('lateCount').textContent = late;
+                        
+                        // Populate report table
+                        const reportTableBody = document.getElementById('reportTableBody');
+                        if (reportTableBody) {
+                            reportTableBody.innerHTML = '';
+                            
+                            allRecords.forEach(record => {
+                                const row = document.createElement('tr');
+                                
+                                // Set row class based on status
+                                if (record.status === 'absent') {
+                                    row.classList.add('table-danger');
+                                } else if (record.status === 'late') {
+                                    row.classList.add('table-warning');
+                                } else {
+                                    row.classList.add('table-success');
+                                }
+                                
+                                // Calculate duration if check-in and check-out exist
+                                let duration = '-';
+                                if (record.check_in && record.check_out) {
+                                    const checkIn = new Date(record.check_in);
+                                    const checkOut = new Date(record.check_out);
+                                    const diff = (checkOut - checkIn) / (1000 * 60); // duration in minutes
+                                    const hours = Math.floor(diff / 60);
+                                    const minutes = Math.floor(diff % 60);
+                                    duration = `${hours}h ${minutes}m`;
+                                }
+                                
+                                // Format date and times
+                                const date = record.check_in ? new Date(record.check_in).toLocaleDateString() : new Date().toLocaleDateString();
+                                const checkIn = record.check_in ? new Date(record.check_in).toLocaleTimeString() : '-';
+                                const checkOut = record.check_out ? new Date(record.check_out).toLocaleTimeString() : '-';
+                                
+                                row.innerHTML = `
+                                    <td>${date}</td>
+                                    <td>${record.name}</td>
+                                    <td>${record.status}</td>
+                                    <td>${checkIn}</td>
+                                    <td>${checkOut}</td>
+                                    <td>${duration}</td>
+                                `;
+                                
+                                reportTableBody.appendChild(row);
+                            });
+                        }
+                        
+                        // Show results and reset button
+                        reportResults.classList.remove('d-none');
+                    })
+                    .catch(error => {
+                        console.error('Error generating report:', error);
+                        alert('Error generating report. Please try again.');
+                    })
+                    .finally(() => {
+                        generateReportBtn.disabled = false;
+                        generateReportBtn.innerHTML = '<i class="fas fa-chart-line me-1"></i> Generate Report';
+                    });
             });
         }
         
@@ -527,7 +637,10 @@
                 
                 // Send delete request
                 fetch(`/api/students/${studentId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -535,10 +648,15 @@
                     }
                     return response.json();
                 })
-                .then(() => {
-                    // Close modal and reload students
+                .then(data => {
+                    // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
                     modal.hide();
+                    
+                    // Show success message
+                    alert('Student deleted successfully');
+                    
+                    // Reload student list
                     loadStudents();
                 })
                 .catch(error => {

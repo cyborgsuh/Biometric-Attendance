@@ -14,7 +14,8 @@ class Student(db.Model):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    attendances = relationship("Attendance", back_populates="student")
+    # Update relationship to include cascade delete
+    attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Student {self.name}>"

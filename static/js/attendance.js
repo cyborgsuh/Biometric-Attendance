@@ -163,11 +163,21 @@ document.addEventListener('DOMContentLoaded', function() {
         dateFilter.addEventListener('change', function() {
             loadAttendanceData(this.value);
         });
+
+        // Set up student filter change handler
+        const studentFilter = document.getElementById('studentFilter');
+        if (studentFilter) {
+            studentFilter.addEventListener('change', function() {
+                loadAttendanceData(dateFilter.value);
+            });
+        }
     }
     
     // Function to load attendance data
     function loadAttendanceData(date) {
         const tableBody = attendanceTable.querySelector('tbody');
+        const studentFilter = document.getElementById('studentFilter');
+        const statusFilter = document.getElementById('statusFilter');
         
         // Show loading state
         tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
@@ -184,13 +194,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Clear loading state
                 tableBody.innerHTML = '';
                 
-                if (data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No attendance records found for this date</td></tr>';
+                // Apply filters
+                let filteredData = data;
+                
+                // Apply student filter if selected
+                if (studentFilter && studentFilter.value) {
+                    filteredData = filteredData.filter(record => record.student_id == studentFilter.value);
+                }
+                
+                // Apply status filter if selected
+                if (statusFilter && statusFilter.value) {
+                    filteredData = filteredData.filter(record => record.status === statusFilter.value);
+                }
+                
+                if (filteredData.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No attendance records found for the selected filters</td></tr>';
                     return;
                 }
                 
                 // Populate table
-                data.forEach((record, index) => {
+                filteredData.forEach((record, index) => {
                     const row = document.createElement('tr');
                     
                     // Format time
@@ -224,10 +247,18 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    // Clean up on page unload
+        // Clean up on page unload
     window.addEventListener('beforeunload', function() {
         if (webcam) {
             webcam.stop();
         }
     });
+
+    // Set up status filter if it exists
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            loadAttendanceData(dateFilter.value);
+        });
+    }
 });
